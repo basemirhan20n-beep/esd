@@ -5,28 +5,130 @@ from typing import Optional
 
 DB_PATH = "parti.db"
 
-ISIMLER = [
-    "Ahmet", "Mehmet", "Ali", "Hasan", "İbrahim", "Mustafa", "Ömer", "Hüseyin",
-    "Murat", "Emre", "Serkan", "Burak", "Kemal", "Tarık", "Barış", "Volkan",
-    "Selim", "Arda", "Ferhat", "Caner", "Sinan", "Fatih", "Taner", "Okan",
-    "Yasin", "Levent", "Ercan", "Tolga", "Uğur", "Kadir", "Savaş", "Alper",
-    "Kerem", "Furkan", "Mert", "Doruk", "Tuncay", "Orhan", "Cemal", "Haluk",
-]
 
-SOYADLAR = [
-    "Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Koç", "Arslan", "Kurt",
-    "Doğan", "Aydın", "Polat", "Güneş", "Yıldız", "Öztürk", "Erdoğan",
-    "Kılıç", "Çetin", "Toprak", "Balcı", "Özdemir", "Kaplan", "Bozkurt",
-    "Akgün", "Yurt", "Güler", "Şen", "Duman", "Özer", "Sarı", "Albayrak",
-    "Ateş", "Bulut", "Karaca", "Taş", "Demirci", "Tuncer", "Işık", "Avcı",
-    "Özkan", "Sever", "Yıldırım", "Aslan", "Doğru", "Gürbüz", "Çevik",
-]
+# ─── Ülkeye göre oyuncu havuzu ─────────────────────────────────────────────
+OYUNCU_HAVUZU = {
+    "TR": [
+        ("Ahmet Yılmaz",65), ("Mehmet Kaya",63), ("Ali Demir",68), ("Murat Şahin",70),
+        ("Emre Çelik",66), ("Serkan Koç",64), ("Burak Arslan",72), ("Kemal Kurt",61),
+        ("Arda Doğan",75), ("Caner Aydın",67), ("Sinan Polat",69), ("Fatih Güneş",62),
+        ("Taner Yıldız",71), ("Okan Öztürk",65), ("Yasin Kılıç",63), ("Levent Çetin",68),
+        ("Ercan Balcı",60), ("Tolga Özdemir",74), ("Kadir Kaplan",66), ("Alper Bozkurt",70),
+        ("Kerem Güler",73), ("Furkan Duman",65), ("Mert Özer",69), ("Doruk Ateş",67),
+        ("Hasan Bulut",62), ("Volkan Karaca",71), ("Barış Demirci",64), ("Selim Işık",66),
+        ("Tarık Avcı",68), ("Haluk Sever",63), ("Uğur Aslan",70), ("Savaş Gürbüz",65),
+        ("İbrahim Çevik",67), ("Ömer Albayrak",69), ("Orhan Sarı",62), ("Cemal Taş",64),
+    ],
+    "BR": [
+        ("Carlos Silva",74), ("Rodrigo Santos",77), ("Lucas Oliveira",72), ("Felipe Costa",76),
+        ("Thiago Pereira",79), ("Gabriel Alves",73), ("Matheus Lima",71), ("Bruno Ferreira",75),
+        ("Anderson Souza",78), ("Marcelo Rocha",70), ("Diego Mendes",76), ("Rafael Cruz",74),
+        ("Leandro Barbosa",72), ("Vinicius Gomes",80), ("Pedro Nascimento",73), ("Neyton Jr",82),
+        ("Roberto Azevedo",69), ("Alexandre Dias",71), ("Eduardo Carvalho",75), ("Gustavo Ribeiro",74),
+    ],
+    "ES": [
+        ("Carlos García",73), ("Sergio López",76), ("Javier Martínez",71), ("Alejandro Rodríguez",75),
+        ("Pablo Hernández",79), ("David González",72), ("Andrés Sánchez",74), ("Rubén Pérez",70),
+        ("Iker Fernández",77), ("Jorge Romero",73), ("Alberto Torres",71), ("Álvaro Jiménez",76),
+        ("Luis Moreno",74), ("Marcos Ruiz",72), ("Iñaki Alonso",78), ("Raúl Vidal",75),
+    ],
+    "FR": [
+        ("Pierre Dupont",73), ("Théo Martin",76), ("Antoine Bernard",74), ("Lucas Simon",72),
+        ("Hugo Thomas",79), ("Mathieu Petit",71), ("Romain Laurent",75), ("Julien Blanc",73),
+        ("Karim Besson",77), ("Noel Garnier",70), ("Baptiste Faure",74), ("Axel Renard",76),
+        ("Éric Morel",72), ("Florian Chevalier",78), ("Cédric Girard",74), ("Dylan Mercier",71),
+    ],
+    "DE": [
+        ("Hans Müller",74), ("Klaus Schmidt",71), ("Lukas Wagner",76), ("Felix Becker",73),
+        ("Niklas Hoffman",78), ("Jonas Fischer",72), ("Tobias Schulz",75), ("Moritz Meyer",70),
+        ("Leon Weber",79), ("Julian Koch",74), ("Patrick Bauer",73), ("Sebastian Wolf",76),
+        ("Maximilian Braun",72), ("Tim Schäfer",77), ("Daniel Zimmermann",75), ("André Krause",71),
+    ],
+    "AR": [
+        ("Diego Torres",75), ("Pablo Romero",78), ("Alejandro Flores",72), ("Nicolás Medina",76),
+        ("Rodrigo Castro",80), ("Lucas Vargas",74), ("Matías Ramos",77), ("Ezequiel Morales",73),
+        ("Maximiliano Cruz",79), ("Gonzalo Ortiz",75), ("Santiago Díaz",71), ("Facundo Reyes",76),
+    ],
+    "PT": [
+        ("João Silva",76), ("Pedro Santos",74), ("Tiago Costa",78), ("Rui Ferreira",72),
+        ("Bruno Pereira",80), ("Fábio Oliveira",75), ("André Carvalho",73), ("Luis Gomes",77),
+        ("Cristiano Jr",82), ("Renato Sousa",71), ("Paulo Lopes",74), ("Nuno Rodrigues",76),
+    ],
+    "EN": [
+        ("James Wilson",73), ("Thomas Johnson",71), ("Jack Williams",76), ("Harry Davies",74),
+        ("Oliver Brown",78), ("George Smith",72), ("William Jones",75), ("Charlie Taylor",73),
+        ("Ethan Anderson",77), ("Mason Clarke",70), ("Lucas Evans",74), ("Noah Roberts",76),
+    ],
+    "IT": [
+        ("Marco Rossi",74), ("Luca Ferrari",77), ("Alessandro Romano",72), ("Matteo Esposito",75),
+        ("Lorenzo Bianchi",79), ("Davide Colombo",73), ("Andrea Ricci",76), ("Simone Conti",71),
+        ("Filippo Moretti",78), ("Giovanni Marchetti",74), ("Riccardo Barbieri",72), ("Nicola Grasso",76),
+    ],
+    "NL": [
+        ("Daan van der Berg",75), ("Lars de Vries",73), ("Sven Bakker",77), ("Ruben Visser",74),
+        ("Joost Meijer",79), ("Niels de Boer",72), ("Tim Jansen",76), ("Bram Peters",73),
+        ("Liam Hendriks",78), ("Finn Smit",71),
+    ],
+    "NG": [
+        ("Emeka Okafor",76), ("Chidi Eze",74), ("Tunde Adeyemi",78), ("Segun Osei",73),
+        ("Kofi Mensah",80), ("Dele Abiodun",75), ("Ibrahim Diallo",77), ("Moussa Traore",72),
+        ("Sadio Keita",79), ("Boubacar Sow",76),
+    ],
+}
+
+# Tüm havuzdan düz liste
+def _tum_havuz():
+    sonuc = []
+    for ulke, oyuncular in OYUNCU_HAVUZU.items():
+        for isim, guc in oyuncular:
+            sonuc.append((isim, guc, ulke))
+    return sonuc
+
+TUM_OYUNCULAR = _tum_havuz()
 
 POZISYONLAR_AGIRLIKLI = (
     ["Kaleci"] * 2 + ["Defans"] * 5 + ["Orta Saha"] * 5 + ["Forvet"] * 3
 )
 
-BASLANGIC_PARASI = 100_000
+# Otomatik kadro yapısı: Takım kurulunca verilecek kadro
+BASLANGIC_KADRO = [
+    ("Kaleci",    1, (55, 72)),    # 1 Kaleci
+    ("Kaleci",    1, (50, 65)),    # yedek Kaleci
+    ("Defans",    4, (58, 76)),    # 4 Defans
+    ("Orta Saha", 4, (58, 76)),    # 4 Orta Saha
+    ("Forvet",    3, (60, 78)),    # 3 Forvet
+    ("Defans",    1, (52, 68)),    # yedek Defans
+    ("Orta Saha", 1, (52, 68)),    # yedek OS
+    ("Forvet",    1, (54, 70)),    # yedek Forvet
+]  # toplam: 16 oyuncu
+
+
+def _deger_hesapla(guc: int) -> int:
+    """Güce göre gerçekçi piyasa değeri hesapla"""
+    if guc >= 85:
+        return random.randint(800_000, 2_000_000)
+    elif guc >= 78:
+        return random.randint(300_000, 800_000)
+    elif guc >= 72:
+        return random.randint(120_000, 300_000)
+    elif guc >= 65:
+        return random.randint(50_000, 120_000)
+    elif guc >= 58:
+        return random.randint(20_000, 50_000)
+    else:
+        return random.randint(8_000, 20_000)
+
+
+def rastgele_isim(kullanilmis: set) -> str:
+    shuffled = list(TUM_OYUNCULAR)
+    random.shuffle(shuffled)
+    for isim, _, _ in shuffled:
+        if isim not in kullanilmis:
+            return isim
+    suf = random.randint(2, 99)
+    return f"Oyuncu {suf}"
+
+BASLANGIC_PARASI = 500_000   # Otomatik kadro geldiği için daha az para yeter
 LIG1_LIMIT = 15
 LIG2_LIMIT = 10
 
@@ -66,12 +168,11 @@ BASARILAR = {
 }
 
 
-def rastgele_isim(kullanilmis: set) -> str:
-    for _ in range(100):
-        isim = f"{random.choice(ISIMLER)} {random.choice(SOYADLAR)}"
-        if isim not in kullanilmis:
-            return isim
-    return f"{random.choice(ISIMLER)} {random.choice(SOYADLAR)}{random.randint(2, 9)}"
+# POZ_ULKE export (futbol.py'den import edilir)
+POZ_ULKE = {
+    "TR": "🇹🇷", "BR": "🇧🇷", "ES": "🇪🇸", "FR": "🇫🇷", "DE": "🇩🇪",
+    "AR": "🇦🇷", "PT": "🇵🇹", "EN": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "IT": "🇮🇹", "NL": "🇳🇱", "NG": "🌍",
+}
 
 
 class FutbolDB:
@@ -232,8 +333,60 @@ class FutbolDB:
                 if "user_id" in str(e):
                     return False, "Zaten bir takımınız var.", 0
                 return False, "Bu takım adı zaten kullanılıyor.", 0
+
+            takim_row = conn.execute("SELECT takim_id FROM takimlar WHERE user_id=?", (user_id,)).fetchone()
+            takim_id = takim_row["takim_id"]
             takim_sayisi = conn.execute("SELECT COUNT(*) FROM takimlar WHERE lig=?", (lig,)).fetchone()[0]
+
+        # Otomatik başlangıç kadrosu oluştur
+        self._otomatik_kadro_olustur(takim_id)
         return True, lig, takim_sayisi
+
+    def _otomatik_kadro_olustur(self, takim_id: int):
+        """Takım kurulunca 16 oyuncudan oluşan otomatik kadro ata"""
+        kullanilmis = set()
+        with self._conn() as conn:
+            kullanilmis = {r[0] for r in conn.execute("SELECT isim FROM oyuncular").fetchall()}
+
+        oyuncu_listesi = []
+        havuz = list(TUM_OYUNCULAR)
+        random.shuffle(havuz)
+        havuz_idx = 0
+
+        for (poz, adet, guc_aralik) in BASLANGIC_KADRO:
+            for _ in range(adet):
+                # Havuzdan uygun güçte oyuncu bul
+                bulunan = False
+                for attempt in range(len(havuz)):
+                    idx = (havuz_idx + attempt) % len(havuz)
+                    isim, baz_guc, ulke = havuz[idx]
+                    if isim in kullanilmis:
+                        continue
+                    guc_min, guc_max = guc_aralik
+                    guc = max(guc_min, min(guc_max, baz_guc + random.randint(-3, 5)))
+                    if guc_min <= guc <= guc_max + 5:
+                        kullanilmis.add(isim)
+                        havuz_idx = (idx + 1) % len(havuz)
+                        deger = _deger_hesapla(guc)
+                        oyuncu_listesi.append((takim_id, isim, poz, guc, deger))
+                        bulunan = True
+                        break
+                if not bulunan:
+                    # Fallback: rastgele isim + guc_aralik ortası
+                    guc_min, guc_max = guc_aralik
+                    isim = rastgele_isim(kullanilmis)
+                    kullanilmis.add(isim)
+                    guc = random.randint(guc_min, guc_max)
+                    deger = _deger_hesapla(guc)
+                    oyuncu_listesi.append((takim_id, isim, poz, guc, deger))
+
+        with self._conn() as conn:
+            for tid, isim, poz, guc, deger in oyuncu_listesi:
+                conn.execute("""
+                    INSERT INTO oyuncular (takim_id,isim,pozisyon,guc,deger,satista,satis_fiyati)
+                    VALUES (?,?,?,?,?,0,?)
+                """, (tid, isim, poz, guc, deger, deger))
+            conn.commit()
 
     def takim_user(self, user_id: int) -> Optional[dict]:
         with self._conn() as conn:
@@ -275,16 +428,23 @@ class FutbolDB:
             if mevcut >= 30:
                 return
             kullanilmis = {r[0] for r in conn.execute("SELECT isim FROM oyuncular").fetchall()}
-            for _ in range(40 - mevcut):
-                isim = rastgele_isim(kullanilmis)
+            havuz = list(TUM_OYUNCULAR)
+            random.shuffle(havuz)
+            eklenen = 0
+            for isim, baz_guc, ulke in havuz:
+                if eklenen >= (40 - mevcut):
+                    break
+                if isim in kullanilmis:
+                    continue
                 kullanilmis.add(isim)
                 poz = random.choice(POZISYONLAR_AGIRLIKLI)
-                guc = random.randint(45, 82)
-                deger = max(8_000, guc * 1_000 + random.randint(-3_000, 5_000))
+                guc = max(40, min(90, baz_guc + random.randint(-5, 8)))
+                deger = _deger_hesapla(guc)
                 conn.execute("""
                     INSERT INTO oyuncular (takim_id,isim,pozisyon,guc,deger,satista,satis_fiyati)
                     VALUES (NULL,?,?,?,?,1,?)
                 """, (isim, poz, guc, deger, deger))
+                eklenen += 1
             conn.commit()
 
     def altyapi_cikart(self, takim_id: int, user_id: int):
@@ -298,12 +458,12 @@ class FutbolDB:
             kullanilmis = {r[0] for r in conn.execute("SELECT isim FROM oyuncular").fetchall()}
             isim = rastgele_isim(kullanilmis)
             poz = random.choice(POZISYONLAR_AGIRLIKLI)
-            guc = random.randint(28, 50)
-            deger = max(2_000, guc * 400)
+            guc = random.randint(30, 52)
+            deger = _deger_hesapla(guc)
             conn.execute("""
                 INSERT INTO oyuncular (takim_id,isim,pozisyon,guc,deger,satista,satis_fiyati,genc)
-                VALUES (?,?,?,?,?,0,0,1)
-            """, (takim_id, isim, poz, guc, deger))
+                VALUES (?,?,?,?,?,0,?,1)
+            """, (takim_id, isim, poz, guc, deger, deger))
             conn.commit()
             r = conn.execute(
                 "SELECT * FROM oyuncular WHERE takim_id=? ORDER BY oyuncu_id DESC LIMIT 1",
