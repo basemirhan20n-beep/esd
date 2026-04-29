@@ -4,7 +4,8 @@ Tüm komutlar ve callback'ler burada.
 """
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from futbol_db import FutbolDB, TAKTIKLER, BASARILAR, LIG1_LIMIT, LIG2_LIMIT
+from futbol_db import FutbolDB, TAKTIKLER, BASARILAR, LIG1_LIMIT, LIG2_LIMIT, POZ_ULKE
+from mac_gorsel import mac_gorsel_olustur, kadro_gorsel_olustur
 
 fdb = FutbolDB()
 
@@ -110,22 +111,47 @@ async def cmd_takim_kur(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if takim_sayisi >= limit and not fdb.fikstur_var_mi(lig):
         fdb.fikstur_olustur(lig)
         fikstur_mesaj = (
-            f"\n\n🎉 *{limit}. takım tamamlandı!* {lig_adi} fikstürü oluşturuldu! 🎊\n"
-            f"Herkes özel mesajından maç sonuçlarını alacak."
+            f"\n\n🎉 *{limit}. takım tamamlandı!* {lig_adi} fikstürü oluşturuldu! 🎊"
         )
     elif fdb.fikstur_var_mi(lig):
         t = fdb.takim_user(user.id)
         if t:
             fdb.fikstur_takim_ekle(t["takim_id"], lig)
-        fikstur_mesaj = "\n\n📅 Fikstüre yeni maçlar eklendi! Puanlar korundu."
-    await update.message.reply_text(
+        fikstur_mesaj = "\n\n📅 Fikstüre yeni maçlar eklendi!"
+
+    takim = fdb.takim_user(user.id)
+    oyuncular = fdb.takim_oyunculari(takim["takim_id"]) if takim else []
+    para = fdb.para_getir(user.id)
+
+    # Kadro listesi metni
+    poz_sira = {"Kaleci": 0, "Defans": 1, "Orta Saha": 2, "Forvet": 3}
+    kadro_metin = ""
+    for o in sorted(oyuncular, key=lambda x: (poz_sira.get(x["pozisyon"], 9), -x["guc"])):
+        kadro_metin += (
+            f"{POZ_EMOJI.get(o['pozisyon'],'⚽')} *{o['isim']}*"
+            f" — {o['pozisyon']} | Güç:{o['guc']} | 💰{o['deger']:,}₺\n"
+        )
+
+    caption = (
         f"✅ *{isim}* kuruldu! _{lig_adi}_\n"
-        f"💰 Başlangıç bütçen: *100.000₺*\n"
+        f"💰 Başlangıç bütçen: *{para:,}₺*\n"
         f"👥 Ligde *{takim_sayisi}/{limit}* takım var.\n"
-        f"⚽ Maç için en az 11 oyuncu gerekli (1 Kaleci dahil)."
-        f"{fikstur_mesaj}",
-        parse_mode="Markdown",
+        f"{'─'*28}\n"
+        f"🏋️ *Başlangıç Kadron (16 Oyuncu):*\n"
+        f"{kadro_metin}"
+        f"{fikstur_mesaj}"
     )
+
+    # Kadro görseli gönder
+    try:
+        gorsel = kadro_gorsel_olustur(isim, "4-4-2", oyuncular[:11], para, 0)
+        await update.message.reply_photo(
+            photo=gorsel,
+            caption=caption[:1024],
+            parse_mode="Markdown",
+        )
+    except Exception:
+        await update.message.reply_text(caption, parse_mode="Markdown")
 
 
 async def cmd_takim(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -175,7 +201,26 @@ async def cmd_takim(update: Update, context: ContextTypes.DEFAULT_TYPE):
         InlineKeyboardButton("📊 İstatistik", callback_data="istatistik"),
         InlineKeyboardButton("🌱 Altyapı", callback_data="altyapi"),
     ]])
-    await _gonder(update, metin, markup=markup)
+    try:
+        gorsel = kadro_gorsel_olustur(
+            takim["isim"], takim.get("taktik", "4-4-2"),
+            oyuncular[:11], para, takim["puan"]
+        )
+        chat = update.effective_chat
+        await context.bot.send_photo(
+            chat_id=chat.id,
+            photo=gorsel,
+            caption=metin[:1024],
+            parse_mode="Markdown",
+            reply_markup=markup,
+        )
+        if update.callback_query:
+            try:
+                await update.callback_query.delete_message()
+            except Exception:
+                pass
+    except Exception:
+        await _gonder(update, metin, markup=markup)
 
 
 async def cmd_piyasa(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -679,10 +724,42 @@ async def futbol_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             InlineKeyboardButton("📊 Lig Tablosu", callback_data=f"lig_tab_{sonuc.get('lig',1)}"),
             InlineKeyboardButton("👥 Takımım", callback_data="takim_bilgi"),
         ]])
-        await query.edit_message_text(metin, parse_mode="Markdown", reply_markup=markup)
-        # Grup bildirimi
+
+        # 2D Maç Görseli
+        try:
+            ev_tid = sonuc["ev_takim_id"]
+            dep_tid = sonuc["dep_takim_id"]
+            ev_oyuncular = fdb.takim_oyunculari(ev_tid)[:11]
+            dep_oyuncular = fdb.takim_oyunculari(dep_tid)[:11]
+            ev_obj = fdb.takim_id(ev_tid)
+            dep_obj = fdb.takim_id(dep_tid)
+            gorsel = mac_gorsel_olustur(
+                ev_takim=sonuc["ev_takim"],
+                dep_takim=sonuc["dep_takim"],
+                ev_gol=sonuc["ev_gol"],
+                dep_gol=sonuc["dep_gol"],
+                ev_oyuncular=ev_oyuncular,
+                dep_oyuncular=dep_oyuncular,
+                ev_taktik=ev_obj.get("taktik", "4-4-2") if ev_obj else "4-4-2",
+                dep_taktik=dep_obj.get("taktik", "4-4-2") if dep_obj else "4-4-2",
+                hafta=sonuc["hafta"],
+                olaylar=sonuc.get("olaylar", []),
+                ev_gol_atanlar=sonuc.get("ev_gol_atanlar", []),
+                dep_gol_atanlar=sonuc.get("dep_gol_atanlar", []),
+            )
+            await query.edit_message_text("✅ Maç tamamlandı!")
+            await context.bot.send_photo(
+                chat_id=update.effective_chat.id,
+                photo=gorsel,
+                caption=metin[:1024],
+                parse_mode="Markdown",
+                reply_markup=markup,
+            )
+        except Exception:
+            await query.edit_message_text(metin, parse_mode="Markdown", reply_markup=markup)
+
+        # Bildirimler
         await _grup_bildir_mac(context, sonuc)
-        # Rakibe özel bildirim
         rakip_user = sonuc["dep_takim_user"] if sonuc["ev_takim_user"] == user.id else sonuc["ev_takim_user"]
         await _ozel_bildirim(context, rakip_user, sonuc, user.id)
         return True
