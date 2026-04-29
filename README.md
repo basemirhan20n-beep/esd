@@ -1,3 +1,4 @@
+[README.md](https://github.com/user-attachments/files/27198373/README.md)
 # 🏛️ Cumhuriyet Parti Yönetim Botu v2.0
 
 ## 🚀 Kurulum
